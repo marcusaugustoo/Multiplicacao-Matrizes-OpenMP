@@ -1,52 +1,39 @@
-# Compilador
 CC = gcc
 
-# Flags de compilação
-CFLAGS = -O3 -march=native -fopenmp -Wall -Wextra
+CFLAGS = -O3 -fopenmp -lm -g -Wall
 
-# Diretório com os arquivos fonte
+#Diretório dos fontes
 SRC_DIR = src
-# Diretório para os objetos compilados
-OBJ_DIR = obj
+#Diretório de saída dos arquivos compilados
+BIN_DIR = bin
 
-# Nome do executável
-TARGET = matmul
 
-# Arquivos fonte dentro de src/
-SRCS = $(SRC_DIR)/main.c \
-       $(SRC_DIR)/sequencial.c \
-       $(SRC_DIR)/par_1D.c \
-       $(SRC_DIR)/par_2D.c
+#Nome do executável
+EXECUTABLE = matmul
+#Caminho completo do executável
+TARGET = $(BIN_DIR)/$(EXECUTABLE)
 
-# Gera lista de objetos correspondentes em obj/
-OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+#Encontra automaticamente todos os arquivos .c dentro de SRC_DIR
+SOURCES = $(wildcard $(SRC_DIR)/*.c)
 
-# Cria pasta de objetos se não existir
-$(shell mkdir -p $(OBJ_DIR))
+#Gera os nomes dos arquivos objeto (.o), mas com o prefixo BIN_DIR/
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BIN_DIR)/%.o)
 
-# Regra padrão
+#Alvo padrão: compila o programa
 all: $(TARGET)
 
-# Linkagem final
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) -lm
+#Regra de linkagem: junta todos os .o (de bin/) para criar o executável (em bin/)
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
 
-# Compila cada .c em .o
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.c | $(BIN_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Limpeza
+#Regra para criar o diretório bin/
+$(BIN_DIR):
+	@mkdir -p $(BIN_DIR)
+
+run: all
+
 clean:
-	rm -f $(TARGET) $(OBJ_DIR)/*.o
-
-# Execução rápida com exemplo de tamanho
-run: $(TARGET)
-	OMP_NUM_THREADS=8 ./$(TARGET) 1024
-
-# Testes automáticos com tamanhos grandes
-test: $(TARGET)
-	for N in 512 1024 2048; do \
-		echo "Executando com N=$$N"; \
-		OMP_NUM_THREADS=8 ./$(TARGET) $$N; \
-		echo ""; \
-	done
+	rm -rf $(BIN_DIR)
