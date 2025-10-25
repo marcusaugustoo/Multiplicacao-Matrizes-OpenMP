@@ -27,8 +27,9 @@ void iniciar_matrizes(double** A, double** B, double** C, int n) {
     srand(time(NULL)); // números diferentes a cada execução
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            A[i][j] = (double)(rand() % 10);  // 0 a 9
-            B[i][j] = (double)(rand() % 10);
+            //Alterado para gerar números de 0 a 1000
+            A[i][j] = (double)(rand() % 1001);  
+            B[i][j] = (double)(rand() % 1001);
             C[i][j] = 0.0;
         }
     }
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]) {
     }
 
     int num_threads = omp_get_max_threads();
-    printf("Executando com n= %d e %d threads.\n\n", n, num_threads);
+    printf("Executando com n = %d e %d nucleos.\n\n", n, num_threads);
 
     //Alocação
     double **A = alocar_matriz_adjacente(n);
@@ -125,6 +126,9 @@ int main(int argc, char *argv[]) {
     printf("Diferenca maxima (Seq x 1D): %e\n", diff_1D);
     printf("Diferenca maxima (Seq x 2D): %e\n", diff_2D);
 
+    // Ajuste da tolerância de erro para aritmética de ponto flutuante
+    // Uma tolerância relativa é melhor, mas para esta soma uma tolerância absoluta 
+    // pequena (como 1e-9 ou 1e-8) deve ser suficiente.
     if (diff_1D > 1e-9 || diff_2D > 1e-9) {
         fprintf(stderr, "ERRO: Os resultados paralelos nao batem com o sequencial\n");
     } else {
